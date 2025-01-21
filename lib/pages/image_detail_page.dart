@@ -39,7 +39,7 @@ class ImageViewerPage extends StatelessWidget {
 
       // Use XFile to share the image
       final xFile = XFile(file.path); // Convert to XFile
-      final result = await Share.shareXFiles([xFile], text: 'This example for photos');
+      final result = await Share.shareXFiles([xFile], text: 'Text bisa di custom');
       if (result != null) {
         print("Image shared successfully!");
       } else {

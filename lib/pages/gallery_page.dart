@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:your_gallery/pages/login_page.dart';
 import '../helpers/database_helper.dart';
 import 'image_detail_page.dart'; // Import ImageDetailPage
 
@@ -90,41 +91,78 @@ class _GalleryPageState extends State<GalleryPage> {
     );
   }
 
+  void _showLogoutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Navigate to SignInScreen
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignInScreen()),
+                  (route) => false, // Remove all previous routes
+                );
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+Widget build(BuildContext context) {
+  return SafeArea( // Membungkus seluruh konten dengan SafeArea
+    child: Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // Menghilangkan tombol Back
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start, // Align title and subtitle
           children: const [
             Text('Hi Dear'),
-            SizedBox(height: 4), // Small gap between title and subtitle
-            Text(
-              'What is your outfit today',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
           ],
         ),
-        titleSpacing: 12,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _showLogoutConfirmation, // Show logout confirmation dialog
+          ),
+        ],
       ),
-      body: SingleChildScrollView(  // Wrap everything in SingleChildScrollView
+      body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.fromLTRB(16, 5, 16, 0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
             children: [
-              // Add space between the subtitle and the GridView
-              SizedBox(height: 30), 
-
+              // Pindahkan teks ke sini
+              const Text(
+                'What is your outfit today',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              const SizedBox(height: 20),
               _imageFileList.isEmpty
                   ? const Center(
                       child: Text('No images available.'),
                     )
                   : GridView.builder(
                       shrinkWrap: true, // Makes the GridView take only as much space as required
-                      physics: NeverScrollableScrollPhysics(), // Prevents scrolling inside GridView
+                      physics: const NeverScrollableScrollPhysics(), // Prevents scrolling inside GridView
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         crossAxisSpacing: 10,
@@ -218,6 +256,7 @@ class _GalleryPageState extends State<GalleryPage> {
         tooltip: 'Add Image',
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // Position at the bottom-right
-    );
-  }
+    ),
+  );
+}
 }
