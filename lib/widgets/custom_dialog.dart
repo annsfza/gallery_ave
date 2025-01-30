@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
+
+//untuk custom dialog
 class CustomDialog extends StatelessWidget {
   final String imagePath;
   final String date;

@@ -4,7 +4,7 @@ import 'package:your_gallery/pages/gallery_page.dart';
 class SignInScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
 
-  // Static username and password for demonstration
+  // Static username and password for example
   final String staticUsername = "user";
   final String staticPassword = "password";
 

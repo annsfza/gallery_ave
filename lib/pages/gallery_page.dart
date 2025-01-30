@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:your_gallery/pages/login_page.dart';
 import '../helpers/database_helper.dart';
-import 'image_detail_page.dart'; // Import ImageDetailPage
+import 'image_detail_page.dart'; // Import halaman detail gambar
 
 class GalleryPage extends StatefulWidget {
   const GalleryPage({Key? key}) : super(key: key);
@@ -14,54 +14,47 @@ class GalleryPage extends StatefulWidget {
 }
 
 class _GalleryPageState extends State<GalleryPage> {
-  final ImagePicker _picker = ImagePicker();
-  List<Map<String, dynamic>> _imageFileList = [];
-  Set<int> _selectedImageIds = Set<int>(); // To track selected images
+  final ImagePicker _picker = ImagePicker(); // Instance untuk memilih gambar
+  List<Map<String, dynamic>> _imageFileList = []; // Menyimpan daftar gambar dari database
+  Set<int> _selectedImageIds = Set<int>(); // Menyimpan ID gambar yang dipilih untuk dihapus
 
   @override
   void initState() {
     super.initState();
-    _loadImages();
+    _loadImages(); // Memuat gambar dari database saat halaman pertama kali dibuka
   }
 
   Future<void> _loadImages() async {
-    final images = await DatabaseHelper.instance.getAllImages();
+    final images = await DatabaseHelper.instance.getAllImages(); // Mengambil gambar dari database
     setState(() {
-      _imageFileList = images;
+      _imageFileList = images; // Menyimpan gambar dalam list
     });
   }
 
   Future<void> _pickImage() async {
-    final pickedFiles = await _picker.pickMultiImage();
+    final pickedFiles = await _picker.pickMultiImage(); // Memilih banyak gambar
 
     if (pickedFiles != null && pickedFiles.isNotEmpty) {
       for (var pickedFile in pickedFiles) {
-        final imageFile = File(pickedFile.path);
-        final date = DateTime.now();
+        final imageFile = File(pickedFile.path); // Mengubah gambar menjadi file
+        final date = DateTime.now(); // Menyimpan tanggal saat gambar diunggah
 
-        // Save the image to the database
-        await DatabaseHelper.instance.insertImage(imageFile, date);
-
-        // Load the latest images from the database
-        _loadImages();
+        await DatabaseHelper.instance.insertImage(imageFile, date); // Simpan ke database
+        _loadImages(); // Perbarui daftar gambar
       }
     }
   }
 
   Future<void> _deleteImage(int imageId) async {
-    // Hapus gambar dari database
-    await DatabaseHelper.instance.deleteImage(imageId);
+    await DatabaseHelper.instance.deleteImage(imageId); // Menghapus gambar dari database
 
-    // Tampilkan konfirmasi penghapusan gambar
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Image deleted successfully')),
     );
 
-    // Memuat ulang gambar dari database
-    _loadImages();
+    _loadImages(); // Memuat ulang daftar gambar setelah dihapus
   }
 
-  // Method untuk menampilkan konfirmasi sebelum menghapus gambar
   void _showDeleteConfirmation(int imageId) {
     showDialog(
       context: context,
@@ -72,16 +65,14 @@ class _GalleryPageState extends State<GalleryPage> {
           actions: [
             TextButton(
               onPressed: () {
-                // Jika pengguna memilih "Cancel", tutup dialog
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Tutup dialog
               },
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
-                // Jika pengguna memilih "Delete", hapus gambar
-                await _deleteImage(imageId);
-                Navigator.of(context).pop(); // Tutup dialog setelah menghapus
+                await _deleteImage(imageId); // Hapus gambar
+                Navigator.of(context).pop(); // Tutup dialog setelah dihapus
               },
               child: const Text('Delete'),
             ),
@@ -101,17 +92,17 @@ class _GalleryPageState extends State<GalleryPage> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop(); // Tutup dialog
               },
               child: const Text('No'),
             ),
             TextButton(
               onPressed: () {
-                // Navigate to SignInScreen
+                // Navigasi ke halaman login dan menghapus semua halaman sebelumnya
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => SignInScreen()),
-                  (route) => false, // Remove all previous routes
+                  (route) => false,
                 );
               },
               child: const Text('Yes'),
@@ -123,140 +114,116 @@ class _GalleryPageState extends State<GalleryPage> {
   }
 
   @override
-Widget build(BuildContext context) {
-  return SafeArea( // Membungkus seluruh konten dengan SafeArea
-    child: Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false, // Menghilangkan tombol Back
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align title and subtitle
-          children: const [
-            Text('Hi Dear'),
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text('Hi Dear'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: _showLogoutConfirmation,
+            ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _showLogoutConfirmation, // Show logout confirmation dialog
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 5, 16, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // Align text to the left
-            children: [
-              // Pindahkan teks ke sini
-              const Text(
-                'What is your outfit today',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 5, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'What is your outfit today',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              _imageFileList.isEmpty
-                  ? const Center(
-                      child: Text('No images available.'),
-                    )
-                  : GridView.builder(
-                      shrinkWrap: true, // Makes the GridView take only as much space as required
-                      physics: const NeverScrollableScrollPhysics(), // Prevents scrolling inside GridView
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 20,
-                      ),
-                      itemCount: _imageFileList.length,
-                      itemBuilder: (context, index) {
-                        final imageData = _imageFileList[index];
-                        final imageBytes = imageData['image'] as List<int>;
-                        final image = Image.memory(
-                          Uint8List.fromList(imageBytes),
-                          fit: BoxFit.cover,
-                        );
-                        final imageId = imageData['id'];
+                const SizedBox(height: 20),
+                _imageFileList.isEmpty
+                    ? const Center(child: Text('No images available.'))
+                    : GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 20,
+                        ),
+                        itemCount: _imageFileList.length,
+                        itemBuilder: (context, index) {
+                          final imageData = _imageFileList[index];
+                          final imageBytes = imageData['image'] as List<int>;
+                          final image = Image.memory(Uint8List.fromList(imageBytes), fit: BoxFit.cover);
+                          final imageId = imageData['id'];
+                          bool isSelected = _selectedImageIds.contains(imageId);
 
-                        bool isSelected = _selectedImageIds.contains(imageId);
-
-                        return GestureDetector(
-                          onLongPress: () {
-                            // Toggle selection on long press
-                            setState(() {
-                              if (isSelected) {
-                                _selectedImageIds.remove(imageId);
-                              } else {
-                                _selectedImageIds.add(imageId);
-                              }
-                            });
-                          },
-                          child: Card(
-                            elevation: 4,
-                            clipBehavior: Clip.antiAlias,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                // Background color when selected
-                                if (isSelected)
-                                  Container(
-                                    color: Colors.blue.withOpacity(0.3), // Opasitas lebih rendah
-                                  ),
-                                InkWell(
-                                  onTap: () async {
-                                    // Navigate to ImageDetailPage
-                                    final result = await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ImageViewerPage(
-                                          imageBytes: Uint8List.fromList(imageBytes),
-                                          imageId: imageId,
+                          return GestureDetector(
+                            onLongPress: () {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedImageIds.remove(imageId);
+                                } else {
+                                  _selectedImageIds.add(imageId);
+                                }
+                              });
+                            },
+                            child: Card(
+                              elevation: 4,
+                              clipBehavior: Clip.antiAlias,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  if (isSelected)
+                                    Container(color: Colors.blue.withOpacity(0.3)),
+                                  InkWell(
+                                    onTap: () async {
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ImageViewerPage(
+                                            imageBytes: Uint8List.fromList(imageBytes),
+                                            imageId: imageId,
+                                          ),
                                         ),
-                                      ),
-                                    );
-
-                                    // If the image was deleted, reload images
-                                    if (result == true) {
-                                      _loadImages();
-                                    }
-                                  },
-                                  child: image,
-                                ),
-                                // Delete button if selected
-                                if (isSelected)
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
-                                      onPressed: () {
-                                        // Show the confirmation dialog
-                                        _showDeleteConfirmation(imageId);
-                                      },
-                                    ),
+                                      );
+                                      if (result == true) {
+                                        _loadImages();
+                                      }
+                                    },
+                                    child: image,
                                   ),
-                              ],
+                                  if (isSelected)
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () {
+                                          _showDeleteConfirmation(imageId);
+                                        },
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-            ],
+                          );
+                        },
+                      ),
+              ],
+            ),
           ),
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _pickImage,
+          child: const Icon(Icons.add),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          tooltip: 'Add Image',
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _pickImage, // Trigger image picking
-        child: const Icon(Icons.add),
-        backgroundColor: Colors.white, // White background for the button
-        foregroundColor: Colors.black, // Icon color
-        tooltip: 'Add Image',
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // Position at the bottom-right
-    ),
-  );
-}
+    );
+  }
 }
